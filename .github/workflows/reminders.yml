@@ -1,0 +1,20 @@
+name: Send QuestLine deadline reminders
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions: {}
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger reminder delivery
+        env:
+          REMINDER_ENDPOINT: ${{ secrets.REMINDER_ENDPOINT }}
+          REMINDER_CRON_SECRET: ${{ secrets.REMINDER_CRON_SECRET }}
+        run: |
+          test -n "$REMINDER_ENDPOINT" || { echo 'Missing REMINDER_ENDPOINT secret'; exit 1; }
+          test -n "$REMINDER_CRON_SECRET" || { echo 'Missing REMINDER_CRON_SECRET secret'; exit 1; }
+          curl --fail-with-body --silent --show-error \
+            --request POST "$REMINDER_ENDPOINT" \
+            --header "Authorization: Bearer $REMINDER_CRON_SECRET"
